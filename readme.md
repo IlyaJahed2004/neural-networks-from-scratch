@@ -136,7 +136,7 @@ This stage establishes a solid numerical foundation for all subsequent steps,
 including forward propagation and training.
 
 
-## current stage: Stage 3 — ReLU Activation Function
+## Stage 3 — ReLU Activation Function
 
 This stage introduces the **ReLU (Rectified Linear Unit)** activation function
 and its derivative, which are used throughout the network.
@@ -187,15 +187,64 @@ ReLU is chosen because it:
 
 ### Scope of This Stage
 
-Implemented:
+`Implemented`:
 - ReLU activation function
 - Derivative of ReLU (dReLU)
 
-Not implemented:
+`Not implemented`:
 - Forward propagation
 - Loss computation
 - Backpropagation logic
 
-These components are introduced in later stages.
 
+# current stage: Stage 4 – Feed Forward Pass
+
+## Overview
+In this stage, we implement the **feed‑forward** mechanism of our 4‑layer MLP.  
+This part connects all previous stages — initialized parameters and ReLU activation — to compute network outputs for all examples in one vectorized step.
+
+Feed‑forward means each layer takes the activations from the previous layer, applies its affine transformation (weights × inputs + bias), and passes the result through the activation function to produce the next layer’s activations.
+
+---
+
+## Formulas
+
+**Forward propagation for each hidden layer:**
+
+Z[h] = W[h] · A[h‑1] + b[h]  
+A[h] = ReLU(Z[h])
+
+Where:
+- A[0] = X (input)
+- ReLU(z) = max(0, z)
+- We use **ReLU** for all layers including the output layer A4 (for non‑negative regression output).
+
+---
+
+## Vectorized Computation — Why It Matters
+NumPy performs matrix operations element‑wise in compiled C code.  
+Using vectorized syntax (`W @ A + b`) is crucial for speed and correctness — it computes **many dot products in parallel** instead of potentially millions of Python‑level loops.
+
+Conceptually, each entry Z[i,j] is the dot product between:
+- the i‑th neuron’s weight vector W[i,:]
+- and the j‑th sample’s input vector A[:,j]
+
+Thus matrix multiplication is just **multiple dot products computed simultaneously**.
+
+---
+
+### Scope of This Stage
+
+`Implemented`:
+- Full forward pass (4 layers)
+- All affine transformations (Z = W@A + b)
+- ReLU activation on all layers
+- Vectorized NumPy operations
+- Cache structure for backprop
+
+`Not implemented`:
+- Loss computation (MSE)
+- L2 regularization
+- Backpropagation
+- Training loop
 
