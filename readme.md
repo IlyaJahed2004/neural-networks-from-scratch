@@ -33,7 +33,7 @@ allowing for a clean Git history that reflects the incremental development of a 
 This approach facilitates easier review, debugging, and understanding of the project's evolution.
 
 
-## current stage :Stage 2 — He Initialization
+## Stage 2 — He Initialization
 
 In this stage, we focus **only on parameter initialization** for the neural network.
 No forward pass, loss function, or training logic is implemented yet.
@@ -134,3 +134,68 @@ He Initialization is applied consistently to **all weight matrices** in the netw
 He Initialization ensures stable activation variance in deep ReLU networks.
 This stage establishes a solid numerical foundation for all subsequent steps,
 including forward propagation and training.
+
+
+## current stage: Stage 3 — ReLU Activation Function
+
+This stage introduces the **ReLU (Rectified Linear Unit)** activation function
+and its derivative, which are used throughout the network.
+
+ReLU is the main non-linearity ensuring the network can model complex relationships.
+It is applied element‑wise to all activations in every hidden layer.
+
+---
+
+### ReLU Definition
+
+The ReLU function is mathematically defined as:
+
+$$\text{ReLU}(z) = \max(0, z)$$
+
+It passes positive values unchanged and zeroes out negative values.
+
+In NumPy, this is efficiently implemented using `np.maximum(x, 0)`,  
+which operates element‑wise on matrices of any shape.
+
+---
+
+### Derivative of ReLU
+
+The derivative of ReLU with respect to its input is:
+
+$$\frac{\partial \text{ReLU}(z)}{\partial z} = \begin{cases} 1 & z > 0 \\ 0 & z \le 0 \end{cases}$$
+
+In NumPy, it is computed using a boolean mask:
+
+```
+(x > 0).astype(int)
+```
+This derivative is used during **backpropagation** to compute gradients
+for all hidden layers.
+
+---
+
+### Why ReLU?
+
+ReLU is chosen because it:
+
+- Introduces non-linearity while remaining computationally efficient
+- Helps mitigate the vanishing gradient problem
+- Works well with **He Initialization**, used in Stage 2
+
+---
+
+### Scope of This Stage
+
+Implemented:
+- ReLU activation function
+- Derivative of ReLU (dReLU)
+
+Not implemented:
+- Forward propagation
+- Loss computation
+- Backpropagation logic
+
+These components are introduced in later stages.
+
+
