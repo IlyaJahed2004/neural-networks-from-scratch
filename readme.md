@@ -249,14 +249,14 @@ Thus matrix multiplication is just **multiple dot products computed simultaneous
 - Training loop
 
 
-## current stage : Stage 5  
+## Stage 5  
 ### Loss Function (MSE), L2 Regularization & Backpropagation
 
 In this stage, we complete the learning pipeline by defining the **loss function**, adding **L2 regularization**, and implementing **backpropagation** to compute gradients for all parameters.
 
 ---
 
-## 1. Mean Squared Error (MSE) Loss
+### 1. Mean Squared Error (MSE) Loss
 
 The Mean Squared Error measures the average squared difference between predicted values and true targets.
 
@@ -274,7 +274,7 @@ This makes the loss (and gradients) independent of batch size and stabilizes tra
 
 ---
 
-## 2. L2 Regularization
+### 2. L2 Regularization
 
 To reduce overfitting and prevent large weights, L2 regularization is added to the loss.
 
@@ -291,11 +291,11 @@ This term penalizes large weights and encourages simpler models.
 
 ---
 
-## 3. Backpropagation (Regression)
+### 3. Backpropagation (Regression)
 
 Backpropagation computes gradients of the loss with respect to all parameters using the chain rule.
 
-### 3.1 Gradient at Output Layer
+#### 3.1 Gradient at Output Layer
 
 For MSE loss, the gradient with respect to the output activation is:
 
@@ -305,11 +305,11 @@ $$
 
 ---
 
-### 3.2 Backward Step for Layer $h$
+#### 3.2 Backward Step for Layer $h$
 
 For each layer (from output to input), gradients are computed as follows:
 
-#### Activation Gradient
+##### Activation Gradient
 $$
 dZ^{[h]} = dA^{[h]} * g'^{[h]}(Z^{[h]})
 $$
@@ -320,7 +320,7 @@ Where:
 
 ---
 
-#### Weight Gradient
+##### Weight Gradient
 $$
 dW^{[h]} = dZ^{[h]} \cdot A^{[h-1]T} + \frac{\lambda}{m} W^{[h]}
 $$
@@ -331,7 +331,7 @@ This consists of:
 
 ---
 
-#### Bias Gradient
+##### Bias Gradient
 $$
 db^{[h]} = \sum_{i=1}^{m} dZ^{[h](i)}
 $$
@@ -340,7 +340,7 @@ $$
 
 ---
 
-#### Propagating Error to Previous Layer
+##### Propagating Error to Previous Layer
 $$
 dA^{[h-1]} = W^{[h]T} \cdot dZ^{[h]}
 $$
@@ -349,7 +349,7 @@ This step distributes the error back to the previous layer based on connection w
 
 ---
 
-## 4. Summary
+### 4. Summary
 
 At the end of this stage:
 - The model can measure prediction error using MSE  
@@ -357,3 +357,88 @@ At the end of this stage:
 - Gradients for all weights and biases are computed using backpropagation  
 
 These components together enable parameter updates during training.
+
+
+## Current Stage: Stage 6 — Training Loop (Regression)
+
+In this stage, all previously implemented functions are combined to train
+the regression model using **Gradient Descent**.
+
+---
+
+###  Training Procedure (Per Iteration)
+
+For each training iteration, the following steps are performed:
+
+---
+
+###  Forward Propagation
+
+Perform a forward pass to compute predictions and cache intermediate values:
+
+$$
+(y_{\text{pred}}, \; cache) = \text{feed\_forward}(X, parameters)
+$$
+
+---
+
+### Compute MSE Loss
+
+The Mean Squared Error loss is computed as:
+
+$$
+loss = \frac{1}{2m} \sum_{i=1}^{m}
+\left(y_{\text{pred}}^{(i)} - y_d^{(i)}\right)^2
+$$
+
+---
+
+###  Compute L2 Regularization Loss
+
+The L2 regularization term is computed using the network weights:
+
+$$
+reg\_loss = \frac{\lambda}{2m}
+\sum_{h=1}^{4} \left\| W^{[h]} \right\|_F^2
+$$
+
+---
+
+###  Total Loss
+
+The total loss is calculated and stored:
+
+$$
+total\_loss = loss + reg\_loss
+$$
+
+---
+
+### Backpropagation with Regularization
+
+Gradients of all parameters are computed using:
+
+$$
+grads = \text{Backpropagation\_reg}(X, y_d, cache, parameters, \lambda)
+$$
+
+---
+
+### Parameter Update (Gradient Descent)
+
+All weights and biases are updated as follows:
+
+$$
+W^{[h]} = W^{[h]} - \eta \cdot dW^{[h]}
+$$
+
+$$
+b^{[h]} = b^{[h]} - \eta \cdot db^{[h]}
+$$
+
+---
+
+### Outputs
+
+- `losses`: list containing total loss values over all iterations  
+- `parameters`: final trained weights and biases
