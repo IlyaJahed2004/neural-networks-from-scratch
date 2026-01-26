@@ -197,9 +197,9 @@ ReLU is chosen because it:
 - Backpropagation logic
 
 
-# current stage: Stage 4 – Feed Forward Pass
+## Stage 4 – Feed Forward Pass
 
-## Overview
+### Overview
 In this stage, we implement the **feed‑forward** mechanism of our 4‑layer MLP.  
 This part connects all previous stages — initialized parameters and ReLU activation — to compute network outputs for all examples in one vectorized step.
 
@@ -207,7 +207,7 @@ Feed‑forward means each layer takes the activations from the previous layer, a
 
 ---
 
-## Formulas
+### Formulas
 
 **Forward propagation for each hidden layer:**
 
@@ -221,7 +221,7 @@ Where:
 
 ---
 
-## Vectorized Computation — Why It Matters
+### Vectorized Computation — Why It Matters
 NumPy performs matrix operations element‑wise in compiled C code.  
 Using vectorized syntax (`W @ A + b`) is crucial for speed and correctness — it computes **many dot products in parallel** instead of potentially millions of Python‑level loops.
 
@@ -248,3 +248,112 @@ Thus matrix multiplication is just **multiple dot products computed simultaneous
 - Backpropagation
 - Training loop
 
+
+## current stage : Stage 5  
+### Loss Function (MSE), L2 Regularization & Backpropagation
+
+In this stage, we complete the learning pipeline by defining the **loss function**, adding **L2 regularization**, and implementing **backpropagation** to compute gradients for all parameters.
+
+---
+
+## 1. Mean Squared Error (MSE) Loss
+
+The Mean Squared Error measures the average squared difference between predicted values and true targets.
+
+$$
+L = \frac{1}{2m} \sum_{i=1}^{m} (y_d^{(i)} - y_{pred}^{(i)})^2
+$$
+
+Where:
+- `m` is the number of training examples  
+- $y_d$ is the ground truth  
+- $y_{pred}$ is the model prediction  
+
+**Why divide by `m`?**  
+This makes the loss (and gradients) independent of batch size and stabilizes training.
+
+---
+
+## 2. L2 Regularization
+
+To reduce overfitting and prevent large weights, L2 regularization is added to the loss.
+
+$$
+L_{reg} = \frac{1}{m} \frac{\lambda}{2} \sum_{l=1}^{L} \|W^{[l]}\|^2_F
+$$
+
+Where:
+- $L = 4$ is the number of layers  
+- $\lambda$ is the regularization strength  
+- $\|W\|_F^2$ is the sum of squared weights  
+
+This term penalizes large weights and encourages simpler models.
+
+---
+
+## 3. Backpropagation (Regression)
+
+Backpropagation computes gradients of the loss with respect to all parameters using the chain rule.
+
+### 3.1 Gradient at Output Layer
+
+For MSE loss, the gradient with respect to the output activation is:
+
+$$
+dA^{[4]} = \frac{\partial L}{\partial A^{[4]}} = \frac{1}{m} (A^{[4]} - Y)
+$$
+
+---
+
+### 3.2 Backward Step for Layer $h$
+
+For each layer (from output to input), gradients are computed as follows:
+
+#### Activation Gradient
+$$
+dZ^{[h]} = dA^{[h]} * g'^{[h]}(Z^{[h]})
+$$
+
+Where:
+- $g'$ is the derivative of ReLU (`drelu`)
+- `*` denotes element-wise multiplication
+
+---
+
+#### Weight Gradient
+$$
+dW^{[h]} = dZ^{[h]} \cdot A^{[h-1]T} + \frac{\lambda}{m} W^{[h]}
+$$
+
+This consists of:
+- The data-driven gradient
+- The L2 regularization gradient
+
+---
+
+#### Bias Gradient
+$$
+db^{[h]} = \sum_{i=1}^{m} dZ^{[h](i)}
+$$
+
+(Implemented using `axis=1` and `keepdims=True`)
+
+---
+
+#### Propagating Error to Previous Layer
+$$
+dA^{[h-1]} = W^{[h]T} \cdot dZ^{[h]}
+$$
+
+This step distributes the error back to the previous layer based on connection weights.
+
+---
+
+## 4. Summary
+
+At the end of this stage:
+- The model can measure prediction error using MSE  
+- Overfitting is controlled via L2 regularization  
+- Gradients for all weights and biases are computed using backpropagation  
+
+These components together enable parameter updates during training.
