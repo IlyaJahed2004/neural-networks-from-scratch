@@ -119,3 +119,62 @@ Since $Y$ is one-hot (e.g., `[0, 1, 0]`), the inner sum only "cares" about the c
 *   If correct class prob ($A$) is 0.0 $\rightarrow$ $\log(0) = -\infty$ $\rightarrow$ **Disaster!**
 
 ---
+
+## 2.3 Task: Forward Propagation (Classification)
+
+We adapt the forward propagation from Part 1. The structural change is in the **output layer**.
+
+### Key Changes:
+1.  **Hidden Layers ($1, 2, 3$):** Continue to use **ReLU** activation.
+2.  **Output Layer ($4$):** Uses **Softmax** instead of ReLU. This converts the raw logits ($Z^{[4]}$) into a probability distribution over the 10 classes.
+
+### Formulas:
+
+**Hidden Layers ($l=1,2,3$):**
+$$Z^{[l]} = W^{[l]} \cdot A^{[l-1]} + b^{[l]}$$
+$$A^{[l]} = \text{ReLU}(Z^{[l]})$$
+
+**Output Layer ($l=4$):**
+$$Z^{[4]} = W^{[4]} \cdot A^{[3]} + b^{[4]}$$
+$$A^{[4]} = \text{Softmax}(Z^{[4]})$$
+
+---
+
+## 2.4 Backpropagation for Classification
+
+In Part 2, the Backpropagation logic changes specifically at the **Output Layer** due to the combination of **Softmax** activation and **Cross-Entropy** loss.
+
+### 1. Gradient at Output Layer (Layer 4)
+Unlike the Regression part (MSE), we do not need to compute $dA^{[4]}$ explicitly. The derivative of the Cross-Entropy loss with respect to the Softmax input ($Z^{[4]}$) simplifies to an elegant subtraction:
+
+$$
+dZ^{[4]} = \frac{1}{m} (A^{[4]} - Y)
+$$
+
+Where:
+- $A^{[4]}$: Predicted probabilities (Output of Softmax).
+- $Y$: One-Hot encoded true labels.
+- $m$: Number of training examples.
+
+*Note: This simplifies the calculation significantly compared to computing the Jacobian of Softmax manually.*
+
+### 2. Propagating Error (Layers 3 $\rightarrow$ 1)
+For the hidden layers, the logic remains identical to Part 1 (Regression), as they still use **ReLU** activation.
+
+**For each hidden layer $l$ (where $l=3, 2, 1$):**
+
+1.  **Error from next layer:**
+    $$dA^{[l]} = W^{[l+1]T} \cdot dZ^{[l+1]}$$
+
+2.  **Apply ReLU Derivative:**
+    $$dZ^{[l]} = dA^{[l]} * g'(Z^{[l]})$$
+    *(Where $g'(z)$ is 1 if $z > 0$, else 0)*
+
+3.  **Gradients for Weights and Biases:**
+    $$dW^{[l]} = dZ^{[l]} \cdot A^{[l-1]T} + \frac{\lambda}{m} W^{[l]}$$
+    $$db^{[l]} = \sum_{i=1}^{m} dZ^{[l](i)}$$
+
+### Summary of Architecture Flow
+- **Forward:** Input $\xrightarrow{ReLU}$ Hidden $\xrightarrow{ReLU}$ Hidden $\xrightarrow{ReLU}$ Output $\xrightarrow{Softmax}$ Probabilities
+- **Backward:** (Probabilities - Labels) $\xrightarrow{Backprop}$ Update Parameters
+
