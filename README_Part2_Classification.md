@@ -120,15 +120,15 @@ Since $Y$ is one-hot (e.g., `[0, 1, 0]`), the inner sum only "cares" about the c
 
 ---
 
-## 2.3 Task: Forward Propagation (Classification)
+# Stage 4: Forward Propagation  (Classification)
 
 We adapt the forward propagation from Part 1. The structural change is in the **output layer**.
 
-### Key Changes:
+## Key Changes:
 1.  **Hidden Layers ($1, 2, 3$):** Continue to use **ReLU** activation.
 2.  **Output Layer ($4$):** Uses **Softmax** instead of ReLU. This converts the raw logits ($Z^{[4]}$) into a probability distribution over the 10 classes.
 
-### Formulas:
+## Formulas:
 
 **Hidden Layers ($l=1,2,3$):**
 $$Z^{[l]} = W^{[l]} \cdot A^{[l-1]} + b^{[l]}$$
@@ -140,11 +140,11 @@ $$A^{[4]} = \text{Softmax}(Z^{[4]})$$
 
 ---
 
-## 2.4 Backpropagation for Classification
+# Stage 5: Backpropagation for Classification
 
 In Part 2, the Backpropagation logic changes specifically at the **Output Layer** due to the combination of **Softmax** activation and **Cross-Entropy** loss.
 
-### 1. Gradient at Output Layer (Layer 4)
+## 1. Gradient at Output Layer (Layer 4)
 Unlike the Regression part (MSE), we do not need to compute $dA^{[4]}$ explicitly. The derivative of the Cross-Entropy loss with respect to the Softmax input ($Z^{[4]}$) simplifies to an elegant subtraction:
 
 $$
@@ -158,7 +158,7 @@ Where:
 
 *Note: This simplifies the calculation significantly compared to computing the Jacobian of Softmax manually.*
 
-### 2. Propagating Error (Layers 3 $\rightarrow$ 1)
+## 2. Propagating Error (Layers 3 $\rightarrow$ 1)
 For the hidden layers, the logic remains identical to Part 1 (Regression), as they still use **ReLU** activation.
 
 **For each hidden layer $l$ (where $l=3, 2, 1$):**
@@ -174,7 +174,57 @@ For the hidden layers, the logic remains identical to Part 1 (Regression), as th
     $$dW^{[l]} = dZ^{[l]} \cdot A^{[l-1]T} + \frac{\lambda}{m} W^{[l]}$$
     $$db^{[l]} = \sum_{i=1}^{m} dZ^{[l](i)}$$
 
-### Summary of Architecture Flow
+## Summary of Architecture Flow
 - **Forward:** Input $\xrightarrow{ReLU}$ Hidden $\xrightarrow{ReLU}$ Hidden $\xrightarrow{ReLU}$ Output $\xrightarrow{Softmax}$ Probabilities
 - **Backward:** (Probabilities - Labels) $\xrightarrow{Backprop}$ Update Parameters
+
+
+# Stage6 : Training Pipeline (Classification)
+
+This stage integrates all previous components (Softmax, Cross-Entropy, Backpropagation) into a unified training loop using Stochastic Gradient Descent (SGD).
+
+##  Objective
+To train the neural network on the MNIST dataset by iteratively updating parameters to minimize the Cross-Entropy loss and maximize classification accuracy.
+
+##  The Training Loop Logic
+The training process differs slightly from Regression (Part 1) by including **Accuracy** as a performance metric and using the Classification-specific functions.
+
+### Process Flow (Per Iteration):
+
+1.  **Forward Pass (`feed_forward_clf`):**
+    *   Compute activations for all layers.
+    *   Apply **Softmax** at the output to get probabilities $\hat{Y}$.
+    *   *Cache* intermediate values ($Z, A$) for backpropagation.
+
+2.  **Loss Computation (`cross_entropy_loss`):**
+    *   Calculate the discrepancy between predictions $\hat{Y}$ and true One-Hot labels $Y$.
+    *   $$J = -\frac{1}{m} \sum_{i=1}^{m} \sum_{k=1}^{K} Y_k^{(i)} \log(\hat{Y}_k^{(i)})$$
+
+3.  **Backpropagation (`Backpropagation_clf`):**
+    *   Compute gradients ($\nabla W, \nabla b$) starting from the simplified Softmax error: $dZ^{[4]} = \frac{1}{m}(A^{[4]} - Y)$.
+    *   Apply L2 Regularization derivative to weights inside this step.
+
+4.  **Parameter Update (SGD):**
+    *   Update weights and biases using the learning rate $\eta$:
+    *   $$\theta \leftarrow \theta - \eta \cdot \nabla \theta$$
+
+5.  **Monitoring (New Feature):**
+    *   **Loss:** Track Cross-Entropy loss history.
+    *   **Accuracy:** Periodically convert probabilities to class labels using `argmax` and compare with ground truth to report model performance (e.g., "92% Accuracy").
+
+## Key Formulas
+
+### Parameter Update Rule
+For every weight $W$ and bias $b$ in layer $l$:
+$$W^{[l]} = W^{[l]} - \eta \cdot dW^{[l]}$$
+$$b^{[l]} = b^{[l]} - \eta \cdot db^{[l]}$$
+
+### Accuracy Calculation
+$$\text{Accuracy} = \frac{1}{m} \sum_{i=1}^{m} \mathbb{1}(\text{argmax}(\hat{y}^{(i)}) == \text{argmax}(y^{(i)}))$$
+
+##  Checklist
+- [x] Forward pass returns probability distribution (sums to 1).
+- [x] Loss decreases over iterations.
+- [x] Accuracy increases over iterations.
+- [x] Parameters are updated in-place (or correctly reassigned).
 
